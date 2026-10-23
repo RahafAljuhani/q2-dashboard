@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>لوحة تقرير الربع الثاني 2026م</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#f3f6f5;--card:#fff;--ink:#12302f;--mut:#5c7573;--line:#d9e3e1;--a:#0f5c5c;--b:#e0a526;--c:#3d5a9a;--d:#7a9a3a;--e:#b4506a;--warn:#c0392b;--warnbg:#fdecea}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#0e1b1b;--card:#162828;--ink:#e6f0ee;--mut:#9bb5b2;--line:#27403f;--a:#4fb3b0;--b:#f0be4a;--c:#7f9be0;--d:#a5c45a;--e:#e07f98;--warn:#ff8a7a;--warnbg:#3a1f1c}}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Tajawal,Tahoma,Arial,sans-serif;line-height:1.6}
+header{background:var(--a);color:#fff;padding:22px 16px 18px}
+header h1{margin:0;font-size:1.5rem;font-weight:800}
+header p{margin:4px 0 0;opacity:.85;font-size:.9rem}
+main{max-width:1200px;margin:0 auto;padding:14px}
+.filters{display:flex;gap:10px;flex-wrap:wrap;position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);padding:10px 0;z-index:5}
+.filters label{font-size:.8rem;color:var(--mut);display:flex;flex-direction:column;gap:2px;flex:1;min-width:130px}
+select{font:inherit;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:8px 0}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px}
+.kpi b{display:block;font-size:1.5rem;font-weight:800;color:var(--a)}
+.kpi span{font-size:.82rem;color:var(--mut)}
+h2{font-size:1.15rem;margin:26px 0 8px;padding-right:10px;border-right:4px solid var(--b)}
+.insights{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 16px;margin:8px 0}
+.insights li{margin:4px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:12px}
+.box{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;min-width:0}
+.box h3{margin:0 0 8px;font-size:.95rem;font-weight:700}
+.cv{position:relative;height:270px}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.82rem}
+th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th{cursor:pointer;color:var(--mut);font-weight:500}
+.tm{display:flex;flex-wrap:wrap;gap:3px;min-height:260px}
+.tm div{color:#fff;font-size:.72rem;padding:5px;border-radius:5px;overflow:hidden;min-height:48px;min-width:56px}
+.bar{height:6px;background:var(--b);border-radius:3px;margin-top:3px}
+.note{font-size:.78rem;color:var(--mut);margin:6px 0 0}
+.alert{background:var(--warnbg);color:var(--warn);border:1px solid var(--warn);border-radius:10px;padding:12px}
+.alert b{display:block;margin-bottom:4px}
+.big{font-size:2.4rem;font-weight:800;color:var(--a);text-align:center}
+</style>
+</head>
+<body>
+<header><h1>تقرير الربع الثاني 2026م</h1><p>إدارة البرامج وخدمات المستفيدين</p></header>
+<main>
+<div class="filters">
+<label>الفرع<select id="fB"></select></label>
+<label>بطاقة الكفالة<select id="fC"></select></label>
+<label>حالة التنفيذ<select id="fS"></select></label>
+</div>
+<div class="kpis" id="kpis"></div>
+<h2>أبرز الاستنتاجات</h2>
+<ul class="insights" id="ins"></ul>
+
+<h2>تحليل الفروع</h2>
+<div class="grid">
+<div class="box"><h3>المبلغ حسب الفرع (ريال)</h3><div class="cv"><canvas id="c1"></canvas></div></div>
+<div class="box"><h3>عدد المستفيدين حسب الفرع</h3><div class="cv"><canvas id="c2"></canvas></div></div>
+<div class="box"><h3>المبلغ حسب الفرع وبطاقة الكفالة</h3><div class="cv"><canvas id="c3"></canvas></div></div>
+<div class="box"><h3>خريطة حرارية: الفرع × البرنامج (المبلغ)</h3><div class="scroll" id="heat"></div></div>
+</div>
+<p class="note">«جميع الفروع» تُعرض كشريحة مستقلة ولا تُوزَّع على الفروع.</p>
+
+<h2>تحليل البرامج</h2>
+<div class="grid">
+<div class="box"><h3>حصة كل برنامج من المبلغ</h3><div class="cv"><canvas id="c4"></canvas></div></div>
+<div class="box"><h3>متوسط تكلفة المستفيد (ريال)</h3><div class="cv"><canvas id="c5"></canvas></div></div>
+<div class="box"><h3>المستفيدون مقابل المبلغ (حجم الفقاعة = تكلفة المستفيد)</h3><div class="cv"><canvas id="c6"></canvas></div></div>
+<div class="box"><h3>عدد المنتجات حسب حالة التنفيذ</h3><div class="cv"><canvas id="c7"></canvas></div></div>
+</div>
+
+<h2>تحليل المنتجات</h2>
+<div class="grid">
+<div class="box" style="grid-column:1/-1"><h3>خريطة المساحات: المنتجات حسب المبلغ (اللون = البرنامج)</h3><div class="tm" id="tm"></div></div>
+<div class="box"><h3>أعلى 10 منتجات حسب المستفيدين</h3><div class="cv"><canvas id="c8"></canvas></div></div>
+<div class="box"><h3>تكلفة المستفيد حسب المنتج (أعلى 10)</h3><div class="cv"><canvas id="c9"></canvas></div></div>
+<div class="box" style="grid-column:1/-1"><h3>جدول المنتجات (اضغط العنوان للفرز)</h3><div class="scroll"><table id="tb"></table></div></div>
+</div>
+
+<h2>البحث الاجتماعي</h2>
+<div class="kpis" id="soc"></div>
+<div class="box"><h3>تسجيل الأسر</h3><div class="cv"><canvas id="c10"></canvas></div></div>
+
+<h2>تجربة المستفيد</h2>
+<div class="grid">
+<div class="box"><h3>نسبة الرضا عن البرامج والخدمات</h3><div class="big">91%</div><div class="cv" style="height:160px"><canvas id="c11"></canvas></div></div>
+<div class="alert"><b>فجوة في المعالجة</b>نقاط التحسين: 4، المعالج منها: 0 (0%). التذاكر الإلكترونية: 0، والمغلقة: 0. الاستبيانات المنفذة: 6. لا توجد بيانات كافية لقياس جودة الإغلاق وسرعته.</div>
+</div>
+</main>
+<script>
+const R=[
+["كفالة مالية","البرنامج الإغاثي","كفالة الأيتام","جميع الفروع",32605,3099200,"منفذ"],
+["كفالة مالية","البرنامج الإغاثي","كفالة الأسر","جميع الفروع",106,106000,"منفذ"],
+["كفالة مالية","البرنامج الإغاثي","كفالة الأرامل","جميع الفروع",108,65000,"منفذ"],
+["كفالة مالية","البرنامج الإغاثي","كفالة مقطوعة","جميع الفروع",64,44850,"منفذ"],
+["كفالة مالية","البرنامج الإغاثي","كفالة الوزارة لفتيات دار الإيواء","المدينة المنورة",69,158588.85,"منفذ"],
+["كفالة خدمات","البرنامج الإغاثي","كسوة عيد الأضحى للأيتام","جميع الفروع",520,104000,"منفذ"],
+["كفالة خدمات","البرنامج الإغاثي","كسوة عيد الأضحى لفتيات دار الإيواء","المدينة المنورة",30,45000,"منفذ"],
+["كفالة خدمات","البرنامج الإغاثي","اللجنة العاجلة","جميع الفروع",42,67813,"منفذ"],
+["كفالة خدمات","البرنامج الإغاثي","مساعدات غذائية عينية","جميع الفروع",274,44725,"منفذ"],
+["كفالة خدمات","البرنامج الإغاثي","قسائم سالم بن محفوظ","الطائف",41,10250,"منفذ"],
+["كفالة خدمات","البرنامج الإغاثي","سلة غذائية","الطائف",120,30000,"منفذ"],
+["كفالة خدمات","البرنامج الإغاثي","التموين الغذائي لفتيات دار الإيواء","المدينة المنورة",37,7500,"منفذ"],
+["كفالة خدمات","التمكين الاجتماعي والاقتصادي","ريادة الأعمال","—",0,0,"مؤجل"],
+["كفالة خدمات","التمكين الاجتماعي والاقتصادي","الحرف اليدوية","مكة المكرمة",3,0,"منفذ"],
+["كفالة خدمات","التمكين الاجتماعي والاقتصادي","الإرشاد المهني","—",0,0,"مؤجل"],
+["كفالة خدمات","التمكين الاجتماعي والاقتصادي","الادخار الأسري","—",0,0,"مؤجل"],
+["كفالة خدمات","تطوير القدرات التعليمية","مراجعة اللغة الإنجليزية","مكة المكرمة",50,0,"منفذ"],
+["كفالة خدمات","تطوير القدرات التعليمية","منصة فهيم","جميع الفروع",203,292320,"منفذ"],
+["كفالة خدمات","تطوير القدرات التعليمية","منصة نون","جميع الفروع",1623,2354973,"منفذ"],
+["كفالة خدمات","تطوير القدرات التعليمية","منصة أبواب","جميع الفروع",222,0,"منفذ"],
+["كفالة خدمات","تطوير القدرات التعليمية","دورة اللغة الإنجليزية","الطائف",53,43200,"منفذ"],
+["كفالة خدمات","تطوير القدرات التعليمية","دورة التحصيلي","جميع الفروع",71,17500,"منفذ"],
+["كفالة خدمات","تطوير القدرات التعليمية","التحفيز التعليمي","—",0,0,"مؤجل"],
+["كفالة خدمات","الرعاية الصحية الوقائية","علاج الأيتام","جميع الفروع",6,41825,"منفذ"],
+["كفالة خدمات","الرعاية الصحية الوقائية","الإسعافات الأولية","—",0,0,"مؤجل"],
+["كفالة خدمات","الرعاية الصحية الوقائية","التوعية الصحية","—",0,0,"مؤجل"],
+["كفالة خدمات","الرعاية النفسية الوقائية","الدعم النفسي","—",0,0,"مؤجل"],
+["كفالة خدمات","الرعاية النفسية الوقائية","استشارات نفسية","—",0,0,"مؤجل"],
+["كفالة خدمات","التميز القيمي","ورشة توعوية عن الحج","جميع الفروع",50,3668,"منفذ"],
+["كفالة خدمات","التميز القيمي","أداء نسك الحج","جميع الفروع",53,530000,"منفذ"],
+["كفالة خدمات","التميز القيمي","بناء الشخصية القيمية","—",0,0,"مؤجل"],
+["كفالة خدمات","التميز القيمي","العمل التطوعي","—",0,0,"مؤجل"],
+["كفالة خدمات","اكتشاف الموهوبين","بطولة الشطرنج","مكة والطائف",32,17500,"منفذ"],
+["كفالة خدمات","اكتشاف الموهوبين","اختبار الذكاءات","جميع الفروع",25,0,"منفذ"],
+["كفالة خدمات","اكتشاف الموهوبين","سفراء كهاتين","—",0,0,"مؤجل"],
+["كفالة خدمات","جودة الحياة","مشروع إيجار المنازل","جميع الفروع",19,140059,"منفذ"],
+["كفالة خدمات","جودة الحياة","دعم التعليم","—",0,0,"مؤجل"],
+["كفالة خدمات","جودة الحياة","أندية ورياضة","—",0,0,"نُفذ في الربع الأول"],
+["كفالة خدمات","جودة الحياة","متحف حرف الأولين - معايدة أنا صحي","مكة المكرمة",49,0,"منفذ"],
+["كفالة خدمات","جودة الحياة","في جعبتي حكاية","الطائف",20,0,"منفذ"],
+["كفالة خدمات","جودة الحياة","معايدة مركز الفريدة","مكة المكرمة",21,0,"منفذ"],
+["كفالة خدمات","جودة الحياة","معايدة مكارم أجياد","مكة المكرمة",57,0,"منفذ"],
+["كفالة خدمات","جودة الحياة","معايدة واحة الفكر","الطائف",25,0,"منفذ"],
+["كفالة خدمات","جودة الحياة","معايدة مربط الفيروز","الطائف",30,0,"منفذ"],
+["كفالة خدمات","جودة الحياة","معايدة د.بثينة","مكة المكرمة",43,0,"منفذ"],
+["كفالة خدمات","جودة الحياة","احتفال عيد الفطر","مكة المكرمة",101,11009.5,"منفذ"],
+["كفالة خدمات","جودة الحياة","احتفال عيد الأضحى","مكة والطائف",140,25206,"منفذ"]
+].map(r=>({card:r[0],prog:r[1],prod:r[2],br:r[3],n:r[4],amt:r[5],st:r[6],cpb:r[4]>0&&r[5]>0?r[5]/r[4]:null}));
+const PAL=['--a','--b','--c','--d','--e'];
+const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const col=i=>{const p=['#0f5c5c','#e0a526','#3d5a9a','#7a9a3a','#b4506a','#6b4c9a','#2a9d8f','#c97b3a','#5a6b7a'];return p[i%p.length]};
+const fmt=n=>Math.round(n).toLocaleString('en-US');
+const sum=(a,k)=>a.reduce((s,r)=>s+r[k],0);
+const grp=(a,k)=>{const m={};a.forEach(r=>(m[r[k]]=m[r[k]]||[]).push(r));return m};
+const $=id=>document.getElementById(id);
+let charts={},sortK='amt',sortD=-1;
+function opts(x){return Object.assign({responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false,labels:{font:{family:'Tajawal'}}}},scales:{x:{ticks:{font:{family:'Tajawal'}}},y:{ticks:{font:{family:'Tajawal'}}}}},x||{})}
+function mk(id,type,data,o){if(charts[id])charts[id].destroy();charts[id]=new Chart($(id),{type,data,options:o||opts()})}
+function opt(sel,vals,all){sel.innerHTML=[all,...vals].map(v=>`<option value="${v===all?'':v}">${v}</option>`).join('')}
+opt($('fB'),[...new Set(R.map(r=>r.br))].filter(b=>b!=='—'),'كل الفروع');
+opt($('fC'),[...new Set(R.map(r=>r.card))],'كل البطاقات');
+opt($('fS'),[...new Set(R.map(r=>r.st))],'كل الحالات');
+['fB','fC','fS'].forEach(i=>$(i).onchange=draw);
+function draw(){
+ const d=R.filter(r=>(!$('fB').value||r.br===$('fB').value)&&(!$('fC').value||r.card===$('fC').value)&&(!$('fS').value||r.st===$('fS').value));
+ const dp=R.filter(r=>(!$('fB').value||r.br===$('fB').value)&&(!$('fC').value||r.card===$('fC').value));
+ const ex=d.filter(r=>r.st==='منفذ');
+ $('kpis').innerHTML=[[fmt(sum(d,'amt'))+' ر.س','إجمالي المبلغ'],[fmt(sum(d,'n')),'إجمالي المستفيدين'],[ex.length+' من '+d.length,'منتجات منفذة'],['91%','نسبة الرضا']].map(k=>`<div class="kpi"><b>${k[0]}</b><span>${k[1]}</span></div>`).join('');
+ const bp=grp(d,'prog'),pa=Object.entries(bp).map(([k,v])=>[k,sum(v,'amt'),sum(v,'n')]).sort((a,b)=>b[1]-a[1]);
+ const tot=sum(d,'amt')||1,cp=d.filter(r=>r.cpb).sort((a,b)=>b.cpb-a.cpb);
+ $('ins').innerHTML=`<li>أعلى برنامج صرفًا: <b>${pa[0]?pa[0][0]:'—'}</b> بنسبة ${pa[0]?(pa[0][1]/tot*100).toFixed(1):0}% من المبلغ.</li><li>أعلى منتج في تكلفة المستفيد: <b>${cp[0]?cp[0].prod:'—'}</b> بمتوسط ${cp[0]?fmt(cp[0].cpb):0} ريال للمستفيد.</li><li>منتجات مؤجلة للربع الثالث: <b>${d.filter(r=>r.st==='مؤجل').length}</b> منتجًا.</li>`;
+ // branches
+ const bb=Object.entries(grp(d,'br')).filter(e=>e[0]!=='—'),bl=bb.map(e=>e[0]);
+ mk('c1','bar',{labels:bl,datasets:[{data:bb.map(e=>sum(e[1],'amt')),backgroundColor:col(0)}]});
+ mk('c2','bar',{labels:bl,datasets:[{data:bb.map(e=>sum(e[1],'n')),backgroundColor:col(1)}]});
+ const cards=[...new Set(R.map(r=>r.card))];
+ mk('c3','bar',{labels:bl,datasets:cards.map((c,i)=>({label:c,data:bb.map(e=>sum(e[1].filter(r=>r.card===c),'amt')),backgroundColor:col(i*2)}))},opts({responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true}},scales:{x:{stacked:true},y:{stacked:true}}}));
+ const progs=Object.keys(grp(R,'prog')),mx=Math.max(1,...bl.flatMap(b=>progs.map(p=>sum(d.filter(r=>r.br===b&&r.prog===p),'amt'))));
+ $('heat').innerHTML='<table><tr><th></th>'+progs.map(p=>`<th>${p}</th>`).join('')+'</tr>'+bl.map(b=>`<tr><th>${b}</th>`+progs.map(p=>{const v=sum(d.filter(r=>r.br===b&&r.prog===p),'amt');return `<td style="background:rgba(15,92,92,${(v/mx*.85).toFixed(2)});color:${v/mx>.45?'#fff':'inherit'}">${v?fmt(v):'·'}</td>`}).join('')+'</tr>').join('')+'</table>';
+ // programs
+ mk('c4','doughnut',{labels:pa.map(p=>p[0]),datasets:[{data:pa.map(p=>p[1]),backgroundColor:pa.map((_,i)=>col(i))}]},opts({responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'bottom',labels:{boxWidth:10,font:{size:10,family:'Tajawal'}}},tooltip:{callbacks:{label:c=>c.label+': '+(c.raw/tot*100).toFixed(1)+'%'}}},scales:{}}));
+ const pc=pa.filter(p=>p[1]>0&&p[2]>0).map(p=>[p[0],p[1]/p[2]]).sort((a,b)=>b[1]-a[1]);
+ mk('c5','bar',{labels:pc.map(p=>p[0]),datasets:[{data:pc.map(p=>Math.round(p[1])),backgroundColor:col(2)}]},opts({indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}}));
+ const bub=pa.filter(p=>p[1]>0&&p[2]>0);
+ mk('c6','bubble',{datasets:bub.map((p,i)=>({label:p[0],data:[{x:p[2],y:p[1],r:Math.min(26,4+Math.sqrt(p[1]/p[2])/4)}],backgroundColor:col(i)+'cc'}))},opts({responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.dataset.label+': '+fmt(c.raw.x)+' مستفيد، '+fmt(c.raw.y)+' ر.س'}}},scales:{x:{type:'logarithmic',title:{display:true,text:'المستفيدون'}},y:{type:'logarithmic',title:{display:true,text:'المبلغ'}}}}));
+ const sts=[...new Set(R.map(r=>r.st))],pl=Object.keys(grp(dp,'prog'));
+ mk('c7','bar',{labels:pl,datasets:sts.map((s,i)=>({label:s,data:pl.map(p=>dp.filter(r=>r.prog===p&&r.st===s).length),backgroundColor:[col(0),col(1),col(4)][i]}))},opts({indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true}},scales:{x:{stacked:true},y:{stacked:true,ticks:{font:{size:10}}}}}));
+ // products
+ const pr=Object.keys(grp(R,'prog')),tp=d.filter(r=>r.amt>0).sort((a,b)=>b.amt-a.amt);
+ $('tm').innerHTML=tp.map(r=>`<div title="${r.prod}: ${fmt(r.amt)}" style="flex:${r.amt} 1 ${Math.max(56,r.amt/tot*900)}px;background:${col(pr.indexOf(r.prog))}">${r.prod}<br><b>${fmt(r.amt)}</b></div>`).join('')||'لا توجد بيانات';
+ const t10=[...d].sort((a,b)=>b.n-a.n).slice(0,10);
+ mk('c8','bar',{labels:t10.map(r=>r.prod),datasets:[{data:t10.map(r=>r.n),backgroundColor:col(3)}]},opts({indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{font:{size:10}}}}}));
+ const c10=cp.slice(0,10);
+ mk('c9','bar',{labels:c10.map(r=>r.prod),datasets:[{data:c10.map(r=>Math.round(r.cpb)),backgroundColor:col(4)}]},opts({indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{font:{size:10}}}}}));
+ const rows=[...d].sort((a,b)=>sortD*((a[sortK]>b[sortK])-(a[sortK]<b[sortK]))),mxa=Math.max(1,...d.map(r=>r.amt));
+ const H=[['prod','المنتج'],['prog','البرنامج'],['br','الفرع'],['n','المستفيدون'],['amt','المبلغ'],['st','الحالة']];
+ $('tb').innerHTML='<tr>'+H.map(h=>`<th data-k="${h[0]}">${h[1]}${sortK===h[0]?(sortD<0?' ▼':' ▲'):''}</th>`).join('')+'</tr>'+rows.map(r=>`<tr><td>${r.prod}</td><td>${r.prog}</td><td>${r.br}</td><td>${fmt(r.n)}</td><td>${fmt(r.amt)}<div class="bar" style="width:${r.amt/mxa*100}%"></div></td><td>${r.st}</td></tr>`).join('');
+ $('tb').querySelectorAll('th').forEach(th=>th.onclick=()=>{const k=th.dataset.k;sortD=sortK===k?-sortD:-1;sortK=k;draw()});
+}
+$('soc').innerHTML=[[67,'أسر جديدة'],[157,'أيتام جدد'],[48,'أسر مرفوضة'],[1,'أسر موقوفة'],[406,'ملفات محدّثة'],[107,'زيارات دراسة حالة']].map(k=>`<div class="kpi"><b>${k[0]}</b><span>${k[1]}</span></div>`).join('');
+draw();
+mk('c10','bar',{labels:['أسر جديدة','أسر مرفوضة','أسر موقوفة'],datasets:[{data:[67,48,1],backgroundColor:[col(0),col(4),col(1)]}]});
+mk('c11','doughnut',{labels:['راضٍ','غير ذلك'],datasets:[{data:[91,9],backgroundColor:[col(0),'#d9e3e1']}]},{responsive:true,maintainAspectRatio:false,rotation:-90,circumference:180,cutout:'70%',plugins:{legend:{display:false}}});
+</script>
+</body>
+</html>
